@@ -21,7 +21,9 @@ app.use(helmet());
 
 // CORS Configuration
 app.use(cors({
-    origin: process.env.CLIENT_URL || ['http://localhost:5173', 'http://localhost:5174'],
+    origin: process.env.CLIENT_URL
+        ? (process.env.CLIENT_URL.includes(',') ? process.env.CLIENT_URL.split(',').map(url => url.trim()) : process.env.CLIENT_URL)
+        : ['http://localhost:5173', 'http://localhost:5174'],
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'DELETE', 'PATCH', 'OPTIONS'],
     allowedHeaders: ['Content-Type', 'Authorization']

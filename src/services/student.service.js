@@ -17,7 +17,15 @@ async function updateProfile(userId, { bio, skills, education, experience, githu
     }
 
     if (bio !== undefined) profile.bio = bio;
-    if (skills !== undefined) profile.skills = Array.isArray(skills) ? skills : skills.split(',').map(s => s.trim());
+    if (skills !== undefined) {
+        if (Array.isArray(skills)) {
+            profile.skills = skills;
+        } else if (typeof skills === 'string') {
+            profile.skills = skills.split(',').map(s => s.trim());
+        } else {
+            profile.skills = [String(skills)];
+        }
+    }
     if (education !== undefined) profile.education = education;
     if (experience !== undefined) profile.experience = experience;
     if (github !== undefined) profile.github = github;

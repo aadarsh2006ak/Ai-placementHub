@@ -28,11 +28,13 @@ function scheduleJobAlerts() {
             const students = await studentProfileModel.find().populate('user');
 
             for (const student of students) {
-                if (!student.user) continue;
+                if (!student.user || !student.skills || !Array.isArray(student.skills)) continue;
                 
                 for (const job of newJobs) {
+                    if (!job.requirements || !Array.isArray(job.requirements)) continue;
+                    
                     const hasMatchingSkill = job.requirements.some(skill => 
-                        student.skills.some(s => s.toLowerCase().trim() === skill.toLowerCase().trim())
+                        student.skills.some(s => s && s.toLowerCase().trim() === skill.toLowerCase().trim())
                     );
 
                     if (hasMatchingSkill) {

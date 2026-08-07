@@ -30,6 +30,10 @@ function scheduleInterviewReminders() {
             logger.info(`Found ${applications.length} interviews scheduled for tomorrow.`);
 
             for (const app of applications) {
+                if (!app.student || !app.job || !app.job.company) {
+                    logger.warn(`Skipping reminder for application ${app._id} due to missing student, job, or company profile.`);
+                    continue;
+                }
                 try {
                     await sendInterviewReminder(app.student, app.job.company, app.job, app.interviewDate);
 

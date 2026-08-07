@@ -1,6 +1,8 @@
 const jobService = require('../services/job.service');
 const applicationService = require('../services/application.service');
 const notificationService = require('../services/notification.service');
+const emailService = require('../services/email.service');
+const logger = require('../config/logger');
 
 async function createJob(req, res, next) {
     try {
@@ -112,10 +114,22 @@ async function updateApplicationStatus(req, res, next) {
             if (status === 'shortlisted' && interviewDate) {
                 message = `Congratulations! You have been shortlisted for "${application.job.title}". An interview is scheduled on ${new Date(interviewDate).toLocaleString()}.`;
                 type = 'interview_schedule';
+
+                // Send instant interview invitation email
+                try {
+                    await emailService.sendInterviewReminder(
+                        application.student,
+                        application.job.company,
+                        application.job,
+                        interviewDate
+                    );
+                } catch (emailErr) {
+                    logger.error('Failed to send interview invitation email:', emailErr);
+                }
             }
 
             await notificationService.createNotification({
-                recipient: application.student,
+                recipient: application.student._id || application.student,
                 sender: req.user._id,
                 type,
                 title: `Application Status: ${status.toUpperCase()}`,

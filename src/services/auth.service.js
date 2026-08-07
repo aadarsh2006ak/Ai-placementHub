@@ -20,7 +20,8 @@ async function register({ name, email, password, role, companyName }) {
         name,
         email,
         passwordHash: hashedPassword,
-        role: role || 'student'
+        role: role || 'student',
+        isVerified: true
     });
 
     if (newUser.role === 'student') {

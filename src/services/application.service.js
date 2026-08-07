@@ -77,7 +77,12 @@ async function getStudentApplications(studentId) {
 }
 
 async function updateStatus(applicationId, userId, role, status, notes) {
-    const application = await applicationModel.findById(applicationId).populate('job');
+    const application = await applicationModel.findById(applicationId)
+        .populate({
+            path: 'job',
+            populate: { path: 'company' }
+        })
+        .populate('student', 'name email');
     if (!application) {
         const error = new Error('Application not found');
         error.statusCode = 404;

@@ -1,5 +1,6 @@
 const jobModel = require('../models/job.model');
 const companyProfileModel = require('../models/companyProfile.model');
+const applicationModel = require('../models/application.model');
 
 async function createJob(userId, { title, description, requirements, salary, location, jobType, experienceLevel }) {
     const companyProfile = await companyProfileModel.findOne({ user: userId });
@@ -9,10 +10,14 @@ async function createJob(userId, { title, description, requirements, salary, loc
         throw error;
     }
 
+    const parsedRequirements = Array.isArray(requirements)
+        ? requirements
+        : (typeof requirements === 'string' ? requirements.split(',').map(r => r.trim()) : [String(requirements)]);
+
     const newJob = new jobModel({
         title,
         description,
-        requirements: Array.isArray(requirements) ? requirements : requirements.split(',').map(r => r.trim()),
+        requirements: parsedRequirements,
         salary,
         location,
         jobType,
@@ -90,7 +95,11 @@ async function updateJob(id, userId, role, data) {
 
     if (title !== undefined) job.title = title;
     if (description !== undefined) job.description = description;
-    if (requirements !== undefined) job.requirements = Array.isArray(requirements) ? requirements : requirements.split(',').map(r => r.trim());
+    if (requirements !== undefined) {
+        job.requirements = Array.isArray(requirements)
+            ? requirements
+            : (typeof requirements === 'string' ? requirements.split(',').map(r => r.trim()) : [String(requirements)]);
+    }
     if (salary !== undefined) job.salary = salary;
     if (location !== undefined) job.location = location;
     if (jobType !== undefined) job.jobType = jobType;
@@ -116,6 +125,7 @@ async function deleteJob(id, userId, role) {
     }
 
     await jobModel.findByIdAndDelete(id);
+    await applicationModel.deleteMany({ job: id });
 }
 
 module.exports = {
