@@ -35,11 +35,9 @@ async function updateProfile(userId, { bio, skills, education, experience, githu
 }
 
 async function setResume(userId, resumeUrl) {
-    const profile = await studentProfileModel.findOne({ user: userId });
+    let profile = await studentProfileModel.findOne({ user: userId });
     if (!profile) {
-        const error = new Error('Student profile not found');
-        error.statusCode = 404;
-        throw error;
+        profile = new studentProfileModel({ user: userId });
     }
     profile.resume = resumeUrl;
     await profile.save();
