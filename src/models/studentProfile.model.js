@@ -1,52 +1,63 @@
 const mongoose = require('mongoose');
 
-
 const studentProfileSchema = new mongoose.Schema({
     user: {
         type: mongoose.Schema.Types.ObjectId,
         ref: 'user',
-        required: true
+        required: true,
+        unique: true
+    },
+    phone: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    department: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    cgpa: {
+        type: String,
+        trim: true,
+        default: ''
+    },
+    graduationYear: {
+        type: String,
+        trim: true,
+        default: ''
     },
     bio: {
         type: String,
-        maxlength: 200
+        maxlength: 500,
+        default: ''
     },
     skills: [{
         type: String
     }],
+    atsScore: {
+        type: Number,
+        min: 0,
+        max: 100,
+        default: null
+    },
+    placementStatus: {
+        type: String,
+        default: 'Active Applicant'
+    },
     education: [{
-        institution: {
-            type: String
-        },
-        degree: {
-            type: String
-        },
-        fieldOfStudy: {
-            type: String
-        },
-        startDate: {
-            type: Date
-        },
-        endDate: {
-            type: Date
-        }
+        institution: String,
+        degree: String,
+        fieldOfStudy: String,
+        startDate: Date,
+        endDate: Date
     }],
     experience: [{
-        company: {
-            type: String
-        },
-        position: {
-            type: String
-        },
-        description: {
-            type: String
-        },
-        startDate: {
-            type: Date
-        },
-        endDate: {
-            type: Date
-        }
+        company: String,
+        position: String,
+        description: String,
+        startDate: Date,
+        endDate: Date
     }],
     resume: {
         type: String,
@@ -54,7 +65,7 @@ const studentProfileSchema = new mongoose.Schema({
     },
     github: {
         type: String,
-        match: [/^https?:\/\/.+/, 'Please enter a valid URL'],
+        default: ''
     },
 }, { timestamps: true });
 

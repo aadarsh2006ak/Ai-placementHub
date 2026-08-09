@@ -30,25 +30,25 @@ function scheduleInterviewReminders() {
             logger.info(`Found ${applications.length} interviews scheduled for tomorrow.`);
 
             for (const app of applications) {
-                if (!app.student || !app.job || !app.job.company) {
-                    logger.warn(`Skipping reminder for application ${app._id} due to missing student, job, or company profile.`);
+                if (!app.student || !app.job) {
                     continue;
                 }
+                const companyInfo = app.job.company || { companyName: 'Recruiter Partner' };
                 try {
-                    await sendInterviewReminder(app.student, app.job.company, app.job, app.interviewDate);
+                    await sendInterviewReminder(app.student, companyInfo, app.job, app.interviewDate);
 
                     await createNotification({
                         recipient: app.student._id,
                         type: 'interview_schedule',
                         title: 'Upcoming Interview Reminder',
-                        message: `Reminder: You have an interview with ${app.job.company.companyName} for ${app.job.title} tomorrow at ${new Date(app.interviewDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`
+                        message: `Reminder: You have an interview scheduled for ${app.job.title} tomorrow at ${new Date(app.interviewDate).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}.`
                     });
                 } catch (notifyErr) {
-                    logger.error(`Failed to send reminder to student for app ${app._id}:`, notifyErr);
+                    logger.error(`Failed to send reminder to student for app ${app._id}:`, notifyErr.message || notifyErr);
                 }
             }
         } catch (err) {
-            logger.error('Error in interviewReminder cron job:', err);
+            logger.error('Error in interviewReminder cron job:', err.message || err);
         }
     });
 }

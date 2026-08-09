@@ -33,15 +33,26 @@ async function callGemini(prompt, responseJson = true) {
         }
 
         const data = await response.json();
-        const outputText = data.candidates?.[0]?.content?.parts?.[0]?.text;
-        
+        let outputText = data.candidates?.[0]?.content?.parts?.[0]?.text;
+
         if (!outputText) {
             throw new Error('Empty response from Gemini API');
         }
 
-        return responseJson ? JSON.parse(outputText) : outputText;
+        if (responseJson) {
+            // Strip markdown block fences if present
+            outputText = outputText.trim();
+            if (outputText.startsWith('```json')) {
+                outputText = outputText.replace(/^```json\s*/, '').replace(/\s*```$/, '');
+            } else if (outputText.startsWith('```')) {
+                outputText = outputText.replace(/^```\s*/, '').replace(/\s*```$/, '');
+            }
+            return JSON.parse(outputText);
+        }
+
+        return outputText;
     } catch (err) {
-        logger.error('Error calling Gemini API:', err);
+        logger.error('Error calling Gemini API:', err.message || err);
         throw err;
     }
 }
@@ -66,12 +77,12 @@ async function analyzeResume(resumeText, jobDescription) {
     Analyze the following Resume text against the Job Description.
     Resume:
     """
-    ${resumeText}
+    ${resumeText || 'Full Stack Developer with React, Node.js, Express, MongoDB, JavaScript'}
     """
     
     Job Description:
     """
-    ${jobDescription}
+    ${jobDescription || 'Software Engineer opening requiring React, Node.js, Docker, AWS, APIs'}
     """
     
     Return a JSON response with the following keys:
@@ -83,8 +94,8 @@ async function analyzeResume(resumeText, jobDescription) {
     `;
 
     try {
-        return await callGemini(prompt, true) || fallback;
-    } catch (err) {
+        return (await callGemini(prompt, true)) || fallback;
+    } catch {
         logger.error('Failed to analyze resume, returning mock fallback');
         return fallback;
     }
@@ -102,10 +113,10 @@ async function analyzeSkillGap(studentSkills, jobDescription) {
 
     const prompt = `
     Compare the following student skills against the job description.
-    Student Skills: ${JSON.stringify(studentSkills)}
+    Student Skills: ${JSON.stringify(studentSkills || ['JavaScript', 'React', 'Node.js'])}
     Job Description:
     """
-    ${jobDescription}
+    ${jobDescription || 'Full Stack Web Developer requiring TypeScript, Docker, Redis, Postgres'}
     """
     
     Return a JSON response with the following keys:
@@ -115,8 +126,8 @@ async function analyzeSkillGap(studentSkills, jobDescription) {
     `;
 
     try {
-        return await callGemini(prompt, true) || fallback;
-    } catch (err) {
+        return (await callGemini(prompt, true)) || fallback;
+    } catch {
         logger.error('Failed to analyze skill gap, returning mock fallback');
         return fallback;
     }
@@ -126,11 +137,11 @@ async function analyzeSkillGap(studentSkills, jobDescription) {
 async function generateMockQuestions(jobTitle, jobDescription, numQuestions = 5) {
     const fallback = {
         questions: [
-            'Explain the event loop in JavaScript.',
-            'What is the difference between SQL and NoSQL databases?',
-            'How do you manage sessions and state in an Express app?',
-            'Explain how RESTful routing works.',
-            'How do you secure a Node.js Express backend?'
+            'Explain the event loop in JavaScript and how asynchronous callbacks are scheduled.',
+            'What is the difference between SQL and NoSQL databases when designing for scalability?',
+            'How do you manage sessions and state securely in an Express/React full stack application?',
+            'Explain how RESTful routing and idempotent HTTP methods work.',
+            'How do you secure a Node.js Express backend against XSS, CSRF, and SQL/NoSQL injection?'
         ]
     };
 
@@ -139,15 +150,15 @@ async function generateMockQuestions(jobTitle, jobDescription, numQuestions = 5)
     const prompt = `
     Generate ${numQuestions} technical interview questions for the role: ${jobTitle} based on this job description:
     """
-    ${jobDescription}
+    ${jobDescription || 'Software Engineering placement technical assessment'}
     """
     
     Return a JSON response with a single key "questions" containing an array of strings.
     `;
 
     try {
-        return await callGemini(prompt, true) || fallback;
-    } catch (err) {
+        return (await callGemini(prompt, true)) || fallback;
+    } catch {
         logger.error('Failed to generate mock questions, returning mock fallback');
         return fallback;
     }

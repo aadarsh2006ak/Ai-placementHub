@@ -1,13 +1,21 @@
 {
   "name": "backend",
   "version": "1.0.0",
-  "description": "",
-  "main": "index.js",
+  "description": "AI Placement Hub Backend REST & Socket API",
+  "main": "server.js",
   "scripts": {
     "dev": "nodemon -e js,json,env server.js",
-    "start": "node server.js"
+    "start": "node server.js",
+    "test": "node --test --test-force-exit tests/**/*.test.js"
   },
-  "keywords": [],
+  "keywords": [
+    "placement",
+    "ai",
+    "ats",
+    "express",
+    "socket.io",
+    "mongodb"
+  ],
   "author": "",
   "license": "ISC",
   "type": "commonjs",
@@ -18,8 +26,8 @@
     "cors": "^2.8.5",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
-    "express-validator": "^7.1.0",
     "express-rate-limit": "^7.1.5",
+    "express-validator": "^7.1.0",
     "helmet": "^7.1.0",
     "jsonwebtoken": "^9.0.3",
     "mongoose": "^9.7.4",

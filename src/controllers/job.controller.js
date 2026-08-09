@@ -56,15 +56,18 @@ async function applyJob(req, res, next) {
         const jobDetails = await jobService.getJobById(req.params.id);
         
         try {
-            await notificationService.createNotification({
-                recipient: jobDetails.postedBy._id,
-                sender: req.user._id,
-                type: 'application_status',
-                title: 'New Job Application',
-                message: `${req.user.name} applied for the "${jobDetails.title}" job position.`
-            });
+            const recipientId = jobDetails.postedBy?._id || jobDetails.postedBy;
+            if (recipientId) {
+                await notificationService.createNotification({
+                    recipient: recipientId,
+                    sender: req.user._id,
+                    type: 'application_status',
+                    title: 'New Job Application',
+                    message: `${req.user.name} applied for the "${jobDetails.title}" job position.`
+                });
+            }
         } catch (notifyErr) {
-            // Silently swallow notification errors
+            logger.warn('Failed to dispatch in-app notification:', notifyErr.message || notifyErr);
         }
 
         res.status(201).json({ success: true, message: 'Applied successfully', application });
@@ -115,28 +118,31 @@ async function updateApplicationStatus(req, res, next) {
                 message = `Congratulations! You have been shortlisted for "${application.job.title}". An interview is scheduled on ${new Date(interviewDate).toLocaleString()}.`;
                 type = 'interview_schedule';
 
-                // Send instant interview invitation email
+                // Send interview invitation email
                 try {
                     await emailService.sendInterviewReminder(
                         application.student,
-                        application.job.company,
+                        application.job.company || { companyName: 'Hiring Company' },
                         application.job,
                         interviewDate
                     );
                 } catch (emailErr) {
-                    logger.error('Failed to send interview invitation email:', emailErr);
+                    logger.error('Failed to send interview invitation email:', emailErr.message || emailErr);
                 }
             }
 
-            await notificationService.createNotification({
-                recipient: application.student._id || application.student,
-                sender: req.user._id,
-                type,
-                title: `Application Status: ${status.toUpperCase()}`,
-                message
-            });
+            const studentId = application.student?._id || application.student;
+            if (studentId) {
+                await notificationService.createNotification({
+                    recipient: studentId,
+                    sender: req.user._id,
+                    type,
+                    title: `Application Status: ${status.toUpperCase()}`,
+                    message
+                });
+            }
         } catch (notifyErr) {
-            // Silently swallow
+            logger.warn('Failed to create status notification:', notifyErr.message || notifyErr);
         }
 
         res.status(200).json({ success: true, message: 'Application status updated successfully', application });

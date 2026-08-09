@@ -7,12 +7,7 @@ const morgan = require('morgan');
 const logger = require('./config/logger');
 const errorHandler = require('./middleware/errorHandler');
 const { apiLimiter } = require('./middleware/rateLimiter');
-
-const authRoutes = require('./routes/auth.routes');
-const studentRoutes = require('./routes/student.routes');
-const companyRoutes = require('./routes/company.routes');
-const adminRoutes = require('./routes/admin.routes');
-const jobRoutes = require('./routes/job.routes');
+const apiRoutes = require('./routes');
 
 const app = express();
 
@@ -45,21 +40,17 @@ app.use(morgan(morganFormat, {
 // Global Rate Limiting
 app.use(apiLimiter);
 
-// API Routes
-const API_V1 = '/api/v1';
-app.use(`${API_V1}/auth`, authRoutes);
-app.use(`${API_V1}/students`, studentRoutes);
-app.use(`${API_V1}/companies`, companyRoutes);
-app.use(`${API_V1}/admins`, adminRoutes);
-app.use(`${API_V1}/jobs`, jobRoutes);
-
-// Base Route
+// Root Base Route
 app.get('/', (req, res) => {
     res.status(200).json({
         success: true,
-        message: 'Welcome to the Placement Hub API. Access /api/v1 for backend services.'
+        message: 'Welcome to the Placement Hub API. Access /api/v1 for backend services.',
+        version: '1.0.0'
     });
 });
+
+// Centralized API v1 Routes
+app.use('/api/v1', apiRoutes);
 
 // 404 Route handler
 app.use((req, res, next) => {

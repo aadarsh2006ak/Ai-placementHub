@@ -1,7 +1,19 @@
 const jwt = require('jsonwebtoken');
 
 module.exports = (socket, next) => {
-    const token = socket.handshake.auth?.token || socket.handshake.query?.token;
+    let token = socket.handshake.auth?.token || socket.handshake.query?.token;
+
+    // Also check cookies from socket handshake headers if available
+    if (!token && socket.handshake.headers?.cookie) {
+        const rawCookies = socket.handshake.headers.cookie.split(';');
+        for (const cookie of rawCookies) {
+            const [key, value] = cookie.trim().split('=');
+            if (key === 'token') {
+                token = decodeURIComponent(value);
+                break;
+            }
+        }
+    }
     
     if (!token) {
         return next(new Error('Authentication error: Token not provided.'));

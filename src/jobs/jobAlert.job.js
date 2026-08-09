@@ -29,32 +29,35 @@ function scheduleJobAlerts() {
 
             for (const student of students) {
                 if (!student.user || !student.skills || !Array.isArray(student.skills)) continue;
-                
+
                 for (const job of newJobs) {
                     if (!job.requirements || !Array.isArray(job.requirements)) continue;
-                    
-                    const hasMatchingSkill = job.requirements.some(skill => 
-                        student.skills.some(s => s && s.toLowerCase().trim() === skill.toLowerCase().trim())
+
+                    const hasMatchingSkill = job.requirements.some((skill) =>
+                        student.skills.some(
+                            (s) => s && skill && s.toLowerCase().trim() === skill.toLowerCase().trim()
+                        )
                     );
 
                     if (hasMatchingSkill) {
+                        const companyName = job.company?.companyName || 'Hiring Partner';
                         try {
-                            await sendJobAlert(student.user, job, job.company);
+                            await sendJobAlert(student.user, job, job.company || { companyName });
 
                             await createNotification({
                                 recipient: student.user._id,
                                 type: 'job_alert',
                                 title: 'New Matching Job Listed',
-                                message: `${job.title} at ${job.company.companyName} matches your profile skills.`
+                                message: `${job.title} at ${companyName} matches your profile skills.`
                             });
                         } catch (notifyErr) {
-                            logger.error(`Failed to send job alert for job ${job._id} to student ${student.user._id}:`, notifyErr);
+                            logger.error(`Failed to send job alert for job ${job._id} to student ${student.user._id}:`, notifyErr.message || notifyErr);
                         }
                     }
                 }
             }
         } catch (err) {
-            logger.error('Error in jobAlert cron job:', err);
+            logger.error('Error in jobAlert cron job:', err.message || err);
         }
     });
 }
