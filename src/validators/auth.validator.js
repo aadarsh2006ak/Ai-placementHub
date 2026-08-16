@@ -12,10 +12,24 @@ const registerValidator = [
     body('email')
         .isEmail()
         .withMessage('Valid email address is required')
-        .normalizeEmail(),
+        .normalizeEmail()
+        .custom((value) => {
+            const disposableDomains = [
+                'mailinator.com', 'yopmail.com', 'tempmail.com', 'guerrillamail.com',
+                'dispostable.com', 'getairmail.com', 'sharklasers.com', '10minutemail.com',
+                'temp-mail.org', 'tempmailaddress.com', 'burnermail.io'
+            ];
+            const domain = value.split('@')[1];
+            if (disposableDomains.includes(domain)) {
+                throw new Error('Disposable/Temporary email addresses are not permitted');
+            }
+            return true;
+        }),
     body('password')
-        .isLength({ min: 6 })
-        .withMessage('Password must be at least 6 characters long'),
+        .isLength({ min: 8 })
+        .withMessage('Password must be at least 8 characters long')
+        .matches(/^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/)
+        .withMessage('Password must contain at least one uppercase letter, one lowercase letter, one number, and one special character (@$!%*?&)'),
     body('role')
         .isIn(ALL_ROLES)
         .withMessage(`Role must be one of: ${ALL_ROLES.join(', ')}`),

@@ -3,25 +3,12 @@ const authService = require('../services/auth.service');
 async function registerUser(req, res, next) {
     try {
         const { name, email, password, role, companyName } = req.body;
-        const { user, token } = await authService.register({ name, email, password, role, companyName });
-
-        const cookieOptions = {
-            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days matching token expiration
-            httpOnly: true,
-            secure: process.env.NODE_ENV === 'production', // Set secure flag in production
-            sameSite: 'strict' // Prevent CSRF
-        };
-        res.cookie('token', token, cookieOptions);
+        const { user } = await authService.register({ name, email, password, role, companyName });
 
         res.status(201).json({ 
             success: true,
-            message: 'Account successfully created',
-            user: {
-                id: user._id,
-                name: user.name,
-                email: user.email,
-                role: user.role
-            }
+            message: 'Registration initiated. A 6-digit verification code has been sent to your email.',
+            email: user.email
         });
     } catch (err) {
         next(err);
@@ -52,6 +39,14 @@ async function loginUser(req, res, next) {
             }
         });
     } catch (err) {
+        if (err.needsVerification) {
+            return res.status(403).json({
+                success: false,
+                needsVerification: true,
+                email: req.body.email,
+                message: err.message
+            });
+        }
         next(err);
     }
 }
@@ -89,9 +84,65 @@ async function getMe(req, res, next) {
     }
 }
 
+async function verifyEmail(req, res, next) {
+    try {
+        const { email, code } = req.body;
+        if (!email || !code) {
+            const error = new Error('Email and verification code are required');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        const { user, token } = await authService.verifyEmailCode({ email, code });
+
+        const cookieOptions = {
+            expires: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000), // 7 days
+            httpOnly: true,
+            secure: process.env.NODE_ENV === 'production',
+            sameSite: 'strict'
+        };
+        res.cookie('token', token, cookieOptions);
+
+        res.status(200).json({
+            success: true,
+            message: 'Email successfully verified and login successful',
+            user: {
+                id: user._id,
+                name: user.name,
+                email: user.email,
+                role: user.role
+            }
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
+async function resendCode(req, res, next) {
+    try {
+        const { email } = req.body;
+        if (!email) {
+            const error = new Error('Email is required');
+            error.statusCode = 400;
+            throw error;
+        }
+
+        await authService.resendCode({ email });
+
+        res.status(200).json({
+            success: true,
+            message: 'A new verification code has been sent to your email.'
+        });
+    } catch (err) {
+        next(err);
+    }
+}
+
 module.exports = {
     registerUser,
     loginUser,
     logoutUser,
-    getMe
+    getMe,
+    verifyEmail,
+    resendCode
 };

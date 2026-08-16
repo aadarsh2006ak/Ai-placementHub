@@ -82,9 +82,25 @@ async function sendJobAlert(student, job, company) {
     });
 }
 
+async function sendVerificationEmail(user, code) {
+    return await sendEmail({
+        to: user.email,
+        subject: 'Placement Hub - Verify Your Email',
+        html: `<h2>Email Verification Needed</h2>
+               <p>Hi ${user.name},</p>
+               <p>Thank you for registering at Placement Hub. Please enter the following 6-digit verification code to activate your account:</p>
+               <div style="font-size: 24px; font-weight: bold; letter-spacing: 4px; padding: 12px; background-color: #f3f4f6; text-align: center; border-radius: 8px; width: fit-content; margin: 16px 0; color: #1e3a8a;">
+                 ${code}
+               </div>
+               <p>This code is valid for 15 minutes. If you did not request this registration, please ignore this email.</p>`,
+        text: `Hi ${user.name}, your email verification code is: ${code}. Valid for 15 minutes.`
+    });
+}
+
 module.exports = {
     sendEmail,
     sendWelcomeEmail,
+    sendVerificationEmail,
     sendInterviewReminder,
     sendJobAlert
 };
