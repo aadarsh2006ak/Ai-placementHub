@@ -1,0 +1,60 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Poppins:wght@400;500;600;700&display=swap');
+
+@import "tailwindcss";
+
+@theme {
+  /* Font Family Definitions */
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+  --font-heading: 'Poppins', 'Inter', sans-serif;
+
+  /* Theme Color Palette overrides & expansions */
+  --color-primary-50: #eef2ff;
+  --color-primary-100: #e0e7ff;
+  --color-primary-200: #c7d2fe;
+  --color-primary-300: #a5b4fc;
+  --color-primary-400: #818cf8;
+  --color-primary-500: #4f46e5;
+  --color-primary-600: #4338ca;
+  --color-primary-700: #3730a3;
+  --color-primary-800: #1e3a8a;
+  --color-primary-900: #312e81;
+
+  --color-success: #10b981;
+  --color-warning: #f59e0b;
+  --color-danger: #ef4444;
+
+  /* Custom Role-Based Background / Card Gradients & Borders */
+  --color-student-accent: #3b82f6;
+  --color-company-accent: #6366f1;
+  --color-admin-accent: #475569;
+}
+
+/* Custom class-based dark mode selector in Tailwind v4 */
+@custom-variant dark (&:where(.dark, .dark *));
+
+/* Smooth theme transitions and global body styles */
+@layer base {
+  body {
+    @apply bg-[#f9fafb] text-[#111827] font-sans antialiased transition-colors duration-300;
+  }
+  
+  html.dark body {
+    @apply bg-[#0f172a] text-[#f1f5f9];
+  }
+
+  h1, h2, h3, h4, h5, h6 {
+    @apply font-heading font-semibold tracking-tight;
+  }
+  
+  /* Customized Premium Scrollbar */
+  ::-webkit-scrollbar {
+    width: 6px;
+    height: 6px;
+  }
+  ::-webkit-scrollbar-track {
+    @apply bg-transparent;
+  }
+  ::-webkit-scrollbar-thumb {
+    @apply bg-slate-300 dark:bg-slate-700 rounded-full hover:bg-slate-400 dark:hover:bg-slate-600 transition-colors;
+  }
+}
